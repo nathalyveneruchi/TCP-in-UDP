@@ -21,9 +21,20 @@ public class Client {
 	private static int WINDOW_SIZE = 0;
 	private static String DATA = "";
 	private static int INITIAL_SEGMENT = 0;
+	
+	
+	static String fn = ""; //	fn: nome do arquivo a ser enviado
+	static InetAddress sip; //	sip: endereçoo IP do servidor
+	static int sport = 0; //	sport: porta UDP do servidor
+	static int wnd = 0; //	wnd: tamanho da janela do transmissor e receptor em bytes
+	static int rto = 0; //	rto: valor inicial de timeout para retransmissão de um segmento em milisegundos
+	static int mss = 0; //	mss: TCP Maximum Segment Size
+	static int dupack = 0; //	dupack: deve ser um para usar retransmissão via ACKs duplicados e zero caso contrário
+	static int lp = 0; 	//	lp: probabilidade de um datagrama UDP ser descartado
+	
 	public static void main(String[] args) {
 		if(args.length < 2){
-			System.out.println("Usage is: java Server <own port> <server address> <server port>");
+			System.out.println("java Server <own port> <server address> <server port>");
 			return;
 		}
 		try{
@@ -41,26 +52,26 @@ public class Client {
 			try {
 				serverAddress = InetAddress.getByName("localhost");
 			} catch (UnknownHostException e) {
-				System.out.println("Server address is unknown!");
+				System.out.println("Endereço do servidor desconhecido!");
 				return;
 			}
 		}
 		
 		try {
-			System.out.println("Binding UDP server to port "+selfPort+"...");
+			System.out.println("Conectando servidor UDP na porta "+selfPort+"...");
 			clientSocket = new DatagramSocket(selfPort);
-			System.out.println("Bind successful!");
+			System.out.println("Conexão realizada com sucesso!");
 		} catch (SocketException e) {
-			System.out.println("Cannot bind socket to port "+selfPort);
+			System.out.println("Não foi possivel conextar na porta: "+selfPort);
 			return;
 		}
 		
-		//START LISTENER
+		//INICIA LISTENER
 		listener.start();
-		System.out.println("UDP listener for this client started!");
+		System.out.println("Listener UDP para esse cliente inciado!");
 		
-		//START MAIN PROCESS
-		/*INITIALIZE THREE WAY HANDSHAKE BY SENDING A SYN PACKET*/
+		//INICIA MAIN PROCESS
+		//INICIALIZA THREE WAY HANDSHAKE AO ENVIAR PACOTE SYN
 		Packet syncPacket = new Packet();
 		syncPacket.setSyncFlag(true);
 		SYNC_NUM = ThreadLocalRandom.current().nextInt(1, 5000);
@@ -83,17 +94,17 @@ public class Client {
 				try {
 					clientSocket.receive(packet);
 					Packet p = Packet.valueOf(new String(buff));
-					//wait for 2seconds then print packet then process
+					//espera 2 segundos, depois imprime o pacote e processa
 					Thread t = timerThread(2);
 					t.start();
 					try{t.join();}catch(InterruptedException ie){}
 					System.out.println("RCVD: "+p.toString());
 
 
-					if(state == State.SYN_SEND){ //first packet must be an ACK+SYN packet
-						if(p.getAckNum() == SYNC_NUM +1){ //ack must be valid
+					if(state == State.SYN_SEND){ //primeiro pacote deve ser ACK+SYN 
+						if(p.getAckNum() == SYNC_NUM +1){ //ack deve ser valido
 							System.out.println("Threeway handshake 2/3.");
-							//send ACK packet to server
+							//envia pacote ACK para servidor
 							Packet ackPacket = new Packet();
 							SYNC_NUM = p.getAckNum();
 							ackPacket.setSyncFlag(true);
@@ -113,7 +124,8 @@ public class Client {
 							SYNC_NUM--;
 						}
 					}else if(state == State.ESTABLISHED){
-						//receive the data
+						//recebe o dado
+						
 						
 						Packet ack = new Packet();
 						if(p.getSyncNum() > SYNC_NUM){
@@ -125,7 +137,7 @@ public class Client {
 						}
 
 						if(BUFFER.size() == WINDOW_SIZE || p.isFinFlag()){
-							//process data collected
+							//processa dado coletado
 							char[] contents = new char[BUFFER.size()];
 							for(Packet pckt : BUFFER){
 								if(pckt.getSyncNum() <= SYNC_NUM){
@@ -141,12 +153,14 @@ public class Client {
 									DATA += ""+contents[i];
 								}
 							}
-							System.out.println("Current data: "+DATA);
-							//clear data
+							System.out.println("Dado atual: "+DATA);
+							//limpa buffer
 							BUFFER.clear();
 							if(p.isFinFlag()){
 								System.out.println("Fourway handshake 1/4");
-								//send fin+ack
+								
+								//envia fin+ack
+								
 								state = State.FIN_RECV;
 								ack = new Packet();
 								ack.setFinFlag(true);
@@ -155,7 +169,7 @@ public class Client {
 								System.out.println("Fourway handshake 2/4");
 								System.out.println("Fourway handshake 3/4");
 							}else{
-								//send new ack
+								//envia novo ack
 								ack.setAckNum(INITIAL_SEGMENT+DATA.length());
 								ack.setWindowSize(WINDOW_SIZE-BUFFER.size());
 								send(ack.toString());
@@ -165,7 +179,7 @@ public class Client {
 					}else if(state == State.FIN_RECV){
 						if(p.isAckFlag() && p.getAckNum()==0){
 							System.out.println("Fourway handshake 4/4");
-							//10seconds timeout then terminate
+							//10 segundos timeout depois termina
 							t = timerThread(10);
 							t.start();
 							try{t.join();}catch(InterruptedException ie){}
@@ -177,13 +191,13 @@ public class Client {
 
 
 				} catch (IOException e) {
-					System.out.println("Failed to receive a packet... "+e.getMessage());
+					System.out.println("Falha ao receber pacote... "+e.getMessage());
 				}
 			}
 		}
 	});
 	
-	//sends to server by default
+	//envia para servidor por padrão
 	private static void send(String message){
 		send(serverAddress, serverPort, message);
 	}
@@ -194,7 +208,7 @@ public class Client {
 		try {
 			clientSocket.send(packet);
 		} catch (IOException e) {
-			System.out.println("Unable to send packet: "+message);
+			System.out.println("Incapaz de enviar pacote: "+message);
 		}
 	}
 
