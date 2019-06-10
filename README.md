@@ -8,7 +8,7 @@
 - Na linha de comando entrar na pasta que contenham os arquivos
 - Compilar javac *.java
 
--Executar o programa Server.java passando os argumentos descritos abaixo:
+- Executar o programa Server.java passando os argumentos descritos abaixo:
 ```
 Java Server <Nome do arquivo a ser recebido e gravado em disco> 
 <Porta UDP do servidor> 
