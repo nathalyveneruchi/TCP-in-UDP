@@ -30,7 +30,7 @@ public class Client {
 	static int rto = 0; //	rto: valor inicial de timeout para retransmissão de um segmento em milisegundos
 	static int mss = 0; //	mss: TCP Maximum Segment Size
 	static int dupack = 0; //	dupack: deve ser um para usar retransmissão via ACKs duplicados e zero caso contrário
-	static int lp = 0; 	//	lp: probabilidade de um datagrama UDP ser descartado
+	static double lp = 0; 	//	lp: probabilidade de um datagrama UDP ser descartado
 	
 	public static void main(String[] args) {
 		if(args.length < 2){
@@ -132,7 +132,7 @@ public class Client {
 							BUFFER.add(p);
 							ack.setAckFlag(true);
 							ack.setAckNum(p.getSyncNum()+1);
-							ack.setWindowSize(WINDOW_SIZE-BUFFER.size());
+							ack.setWindowSize(WINDOW_SIZE - BUFFER.size());
 							send(ack.toString());
 						}
 
