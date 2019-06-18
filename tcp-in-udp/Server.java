@@ -31,18 +31,20 @@ public class Server {
 			return;
 		}
 		
-		int port = 0;
 		try{
-			port = Integer.parseInt(args[0]);
+			fn = (args[0]);
+			sport = Integer.parseInt(args[1]);
+			wnd = Integer.parseInt(args[2]);
+			lp = Integer.parseInt(args[3]);
 		}catch(NumberFormatException nfe){
-			port = 8080;
+			sport = 8080;
 		}
 		try {
-			System.out.println("Conectando servidor UDP na porta:: "+port+"...");
-			serverSocket = new DatagramSocket(port);
+			System.out.println("Conectando servidor UDP na porta:: "+sport+"...");
+			serverSocket = new DatagramSocket(sport);
 			System.out.println("Conexão realizada com sucesso!");
 		} catch (SocketException e) {
-			System.out.println("Não foi possível conecatr o socket na porta:: "+port);
+			System.out.println("Não foi possível conecatr o socket na porta:: "+sport);
 			return;
 		}
 		

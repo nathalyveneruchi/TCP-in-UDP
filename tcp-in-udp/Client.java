@@ -12,9 +12,6 @@ public class Client {
 
 	private static final int MAXIMUM_BUFFER_SIZE = 512;
 	private static DatagramSocket clientSocket;
-	private static InetAddress serverAddress;
-	private static int serverPort=0;
-	private static int selfPort=0;
 	private static State state = State.NONE;
 	private static int ACK_NUM = 0;
 	private static int SYNC_NUM = 0;
@@ -38,19 +35,25 @@ public class Client {
 			return;
 		}
 		try{
-			selfPort = Integer.parseInt(args[0]);
+			fn = (args[0]);
+			wnd = Integer.parseInt(args[3]);
+			rto = Integer.parseInt(args[4]);
+			mss = Integer.parseInt(args[5]);
+			dupack = Integer.parseInt(args[6]);
+			lp = Integer.parseInt(args[7]);
+			
 		}catch(NumberFormatException nfe){
-			selfPort = 0;
+		
 		}
 		
 		try{
-			serverAddress = InetAddress.getByName(args[1]);
-			serverPort = Integer.parseInt(args[2]);
+			sip = InetAddress.getByName(args[1]);
+			sport = Integer.parseInt(args[2]);
 		}catch(NumberFormatException nfe){
-			serverPort = 8080;
+			sport = 8080;
 		}catch(UnknownHostException uhe){
 			try {
-				serverAddress = InetAddress.getByName("localhost");
+				sip = InetAddress.getByName("localhost");
 			} catch (UnknownHostException e) {
 				System.out.println("Endereço do servidor desconhecido!");
 				return;
@@ -58,11 +61,11 @@ public class Client {
 		}
 		
 		try {
-			System.out.println("Conectando servidor UDP na porta "+selfPort+"...");
-			clientSocket = new DatagramSocket(selfPort);
+			System.out.println("Conectando servidor UDP na porta "+80+"...");
+			clientSocket = new DatagramSocket(80);
 			System.out.println("Conexão realizada com sucesso!");
 		} catch (SocketException e) {
-			System.out.println("Não foi possivel conextar na porta: "+selfPort);
+			System.out.println("Não foi possivel conextar na porta: "+80);
 			return;
 		}
 		
@@ -199,7 +202,7 @@ public class Client {
 	
 	//envia para servidor por padrão
 	private static void send(String message){
-		send(serverAddress, serverPort, message);
+		send(sip, sport, message);
 	}
 
 	private static void send(InetAddress address, int port, String message){
